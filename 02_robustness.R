@@ -96,10 +96,10 @@ stable <- list(
 main_R2 <- read_csv("output/3_change_point.csv", show_col_types = FALSE) %>%
   select(descriptor, R2_main_break = R2)
 
-search_stretch <- function(stretch, stretch_name) {
-  rows <- which(samples$date %in% stretch$dates)
-  search_descriptors(D2_list, rows, n_perm_cp, stretch$min_seg) %>%
-    mutate(stretch = stretch_name, min_seg = stretch$min_seg)
+search_stretch <- function(this_stretch, stretch_name) {
+  rows <- which(samples$date %in% this_stretch$dates)
+  search_descriptors(D2_list, rows, n_perm_cp, this_stretch$min_seg) %>%
+    mutate(stretch = stretch_name, min_seg = this_stretch$min_seg)
 }
 stable_full <- stable %>%
   imap(search_stretch) %>%
