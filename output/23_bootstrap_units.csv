@@ -1,0 +1,6 @@
+descriptor,modal_last_pre,modal_first_post,prop_modal,n_breaks_95,prop_in_W12
+taxa_class,2018-06-26,2018-08-13,0.67,2,1
+taxa_genus,2018-06-26,2018-08-13,0.34,6,1
+taxa_genus_biovol,2018-02-08,2018-05-16,0.972,1,1
+traits_biovolume,2018-02-08,2018-05-16,1,1,1
+traits_cells,2018-06-26,2018-08-13,0.682,2,1

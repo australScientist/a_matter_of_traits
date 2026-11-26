@@ -1,0 +1,4 @@
+descriptor,spatial_pre,spatial_post,spatial_p,depth_pre,depth_post,turnover_pre,turnover_post,R2_date_pre,R2_location_pre,R2_date_post,R2_location_post
+traits_cells,0.13,0.141,0.648,0.112,0.135,0.237,0.193,0.682,0.024,0.552,0.03
+traits_biovolume,0.143,0.103,0.006,0.129,0.093,0.211,0.126,0.649,0.023,0.649,0.027
+taxa_genus,0.529,0.69,0.131,0.448,0.68,0.916,0.923,0.672,0.028,0.551,0.03

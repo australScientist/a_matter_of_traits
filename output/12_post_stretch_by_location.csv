@@ -1,0 +1,11 @@
+location,descriptor,last_pre,first_post,R2,p
+CLM,traits_biovolume,2018-12-10,2019-01-18,0.304,0.027
+CLM,taxa_genus_biovol,2018-12-10,2019-01-18,0.301,0.017
+TLE,traits_biovolume,2018-10-08,2018-12-10,0.266,0.136
+TLE,taxa_genus_biovol,2018-10-08,2018-12-10,0.292,0.058
+TLR,traits_biovolume,2019-06-05,2019-08-07,0.226,0.118
+TLR,taxa_genus_biovol,2018-11-15,2018-12-10,0.21,0.1
+TSP,traits_biovolume,2019-06-05,2019-08-07,0.336,0.015
+TSP,taxa_genus_biovol,2018-10-08,2018-12-10,0.269,0.086
+DLM,traits_biovolume,2018-12-10,2019-01-18,0.138,0.101
+DLM,taxa_genus_biovol,2018-12-10,2019-01-18,0.129,0.125

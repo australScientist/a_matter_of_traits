@@ -1,0 +1,9 @@
+descriptor,R2_trend,R2_stepJul_beyond_trend,p_Jul,R2_stepMar_beyond_trend,p_Mar
+traits_cells,0.167,0.115,0.001,0.077,0.001
+traits_biovolume,0.215,0.105,0.001,0.155,0.001
+traits_cells_dom,0.161,0.112,0.001,0.051,0.001
+traits_cells_klais,0.163,0.118,0.001,0.08,0.001
+traits_cells_rimet,0.174,0.121,0.001,0.082,0.001
+taxa_genus,0.087,0.055,0.001,0.068,0.001
+taxa_genus_biovol,0.107,0.061,0.001,0.11,0.001
+taxa_class,0.103,0.091,0.001,0.037,0.001

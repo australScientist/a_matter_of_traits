@@ -1,0 +1,7 @@
+error,descriptor,n,significant,same_break,significant_and_same,other_breaks,median_R2
+large (x2),taxa_genus_biovol,100,1,1,1,,0.188
+large (x2),traits_biovolume,100,1,1,1,,0.355
+large (x2),traits_cells,100,1,1,1,,0.246
+moderate (x1.5),taxa_genus_biovol,100,1,1,1,,0.188
+moderate (x1.5),traits_biovolume,100,1,1,1,,0.358
+moderate (x1.5),traits_cells,100,1,1,1,,0.246

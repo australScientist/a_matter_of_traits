@@ -1,0 +1,3 @@
+variant,R2_obs,R2_null_mean,R2_null_q95,p,SES
+traits_cells,0.244,0.108,0.214,0.021,2.58
+traits_biovolume,0.32,0.136,0.273,0.02,2.54

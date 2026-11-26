@@ -1,0 +1,20 @@
+group,variable,unit,loq,method
+Field,"Water temperature, pH, conductivity, dissolved oxygen",,,"In situ profiles with multiparameter probes (Horiba U-10, U-23 and W-22XD)"
+Field,Secchi depth,m,,Secchi disk
+Nutrients,Ammonium (NH₄⁺),mg L⁻¹,,"Segmented flow analysis (SM 23 4120 A-B; 4500 A-G)"
+Nutrients,Ammonium nitrogen (NH₄⁺-N),µg L⁻¹,40,Calculated from NH₄⁺
+Nutrients,Nitrate (NO₃⁻),mg L⁻¹,,Ion chromatography (SM 23 4110 A-B)
+Nutrients,Nitrate nitrogen (NO₃⁻-N),mg L⁻¹,0.1,Calculated from NO₃⁻
+Nutrients,Nitrite (NO₂⁻),mg L⁻¹,,"Segmented flow analysis (SM 23 4120 A-B, 4500 A-B)"
+Nutrients,Nitrite nitrogen (NO₂⁻-N),µg L⁻¹,6,Calculated from NO₂⁻
+Nutrients,Soluble reactive phosphorus (SRP),µg L⁻¹,10,Continuous flow spectrophotometry
+Nutrients,Total phosphorus (TP),µg L⁻¹,10,Continuous flow spectrophotometry
+Carbonate system and major ions,Alkalinity,mg CaCO₃ L⁻¹,20,Titration (SM 2320 B)
+Carbonate system and major ions,Calcium,mg L⁻¹,4.0,ICP-OES (SM 3500 C)
+Carbonate system and major ions,Magnesium,mg L⁻¹,1.0,ICP-OES (SM 3500 C)
+Carbonate system and major ions,Sodium,mg L⁻¹,4.0,ICP-OES (SM 3500 C)
+Carbonate system and major ions,Potassium,mg L⁻¹,1.0,ICP-OES (SM 3500 C)
+Carbonate system and major ions,Chloride,mg L⁻¹,2.0,Ion chromatography (SM 23 4110 A-B)
+Carbonate system and major ions,Sulphate,mg L⁻¹,2.0,Ion chromatography (SM 23 4110 A-B)
+Carbon and biomass,Total organic carbon (TOC),mg L⁻¹,1.0,Combustion and non-dispersive infrared detection (SM 5310 B)
+Carbon and biomass,Chlorophyll a,µg L⁻¹,2,Spectrophotometry (SM 23 10200 H)

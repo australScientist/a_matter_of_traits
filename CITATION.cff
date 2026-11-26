@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use these data or code, please cite the paper and this repository."
+title: "Detecting a phytoplankton regime shift from traits: reproducibility package"
+authors:
+  - family-names: Marconi
+    given-names: Guido
+    affiliation: Universidad Nacional de Córdoba
+    # orcid: https://orcid.org/[[VERIFY]]
+version: 1.0.0
+license: MIT
+repository-code: "https://github.com/[[VERIFY: GitHub user]]/los-molinos-regime-shift"

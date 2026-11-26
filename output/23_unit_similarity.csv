@@ -1,0 +1,19 @@
+type,n_pairs,median_dissimilarity,mean_coupling,descriptor,coupling_if_independent
+between inflows,57,0.1,-0.06,traits_cells,-0.17
+"other location, other depth",43,0.146,-0.28,traits_cells,-0.17
+"other location, same depth",43,0.149,-0.18,traits_cells,-0.17
+reservoir and inflow,239,0.114,-0.08,traits_cells,-0.17
+"same location, other depth",46,0.119,-0.03,traits_cells,-0.17
+"same unit, next date",150,0.194,NA,traits_cells,-0.17
+between inflows,57,0.098,-0.04,traits_biovolume,-0.17
+"other location, other depth",43,0.12,-0.26,traits_biovolume,-0.17
+"other location, same depth",43,0.109,-0.14,traits_biovolume,-0.17
+reservoir and inflow,239,0.099,-0.14,traits_biovolume,-0.17
+"same location, other depth",46,0.097,-0.06,traits_biovolume,-0.17
+"same unit, next date",150,0.142,NA,traits_biovolume,-0.17
+between inflows,57,0.494,-0.03,taxa_genus,-0.17
+"other location, other depth",43,0.645,-0.28,taxa_genus,-0.17
+"other location, same depth",43,0.629,-0.15,taxa_genus,-0.17
+reservoir and inflow,239,0.536,-0.07,taxa_genus,-0.17
+"same location, other depth",46,0.615,-0.02,taxa_genus,-0.17
+"same unit, next date",150,0.909,NA,taxa_genus,-0.17

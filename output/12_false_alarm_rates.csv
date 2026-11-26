@@ -1,0 +1,36 @@
+scenario,descriptor,n_reps,false_alarm_rate
+all data,taxa_class,1,0
+all data,taxa_genus,1,0
+all data,taxa_genus_biovol,1,1
+all data,traits_biovolume,1,0
+all data,traits_cells,1,0
+2/3 dates,taxa_class,150,0.09333333333333334
+2/3 dates,taxa_genus,150,0.07333333333333333
+2/3 dates,taxa_genus_biovol,150,0.05333333333333334
+2/3 dates,traits_biovolume,150,0.05333333333333334
+2/3 dates,traits_cells,150,0.08666666666666667
+1/2 dates,taxa_class,150,0.06
+1/2 dates,taxa_genus,150,0.04
+1/2 dates,taxa_genus_biovol,150,0.02666666666666667
+1/2 dates,traits_biovolume,150,0.04666666666666667
+1/2 dates,traits_cells,150,0.02666666666666667
+1/3 dates,taxa_class,150,0
+1/3 dates,taxa_genus,150,0
+1/3 dates,taxa_genus_biovol,150,0
+1/3 dates,traits_biovolume,150,0
+1/3 dates,traits_cells,150,0
+3 locations,taxa_class,150,0
+3 locations,taxa_genus,150,0
+3 locations,taxa_genus_biovol,150,0.7733333333333333
+3 locations,traits_biovolume,150,0.5
+3 locations,traits_cells,150,0.006666666666666667
+1 location,taxa_class,150,0
+1 location,taxa_genus,150,0.07333333333333333
+1 location,taxa_genus_biovol,150,0.22
+1 location,traits_biovolume,150,0.4
+1 location,traits_cells,150,0
+"1 location, 1/2 dates",taxa_class,150,0
+"1 location, 1/2 dates",taxa_genus,150,0.006666666666666667
+"1 location, 1/2 dates",taxa_genus_biovol,150,0.02666666666666667
+"1 location, 1/2 dates",traits_biovolume,150,0.02
+"1 location, 1/2 dates",traits_cells,150,0

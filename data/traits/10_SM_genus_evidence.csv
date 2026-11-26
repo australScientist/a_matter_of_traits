@@ -1,0 +1,39 @@
+genus,class,rimet_n_taxa,klais_genus_entry,n_species_klais,bruggeman_level,mixotrophy_evidence
+Anabaena,Cyano,17,TRUE,20,genus,none
+Aphanocapsa,Cyano,23,TRUE,12,family (Merismopediaceae),none
+Aphanothece,Cyano,9,TRUE,7,order (Chroococcales),none
+Aulacoseira,Diatom,10,TRUE,19,genus,none
+Ceratium,Dino,2,TRUE,12,genus,Klais et al. 2017
+Chlamydomonas,Green,12,TRUE,1,genus,none
+Chroomonas,Crypto,2,TRUE,2,genus,Kugrens & Lee 1991 (one species)
+Closteriopsis,Green,1,TRUE,3,family (Chlorellaceae),none
+Closterium,Desmid,23,TRUE,20,genus,none
+Cocconeis,Diatom,4,TRUE,11,order (Achnanthales),none
+Coelastrum,Green,10,TRUE,6,genus,none
+Cosmarium,Desmid,52,TRUE,29,genus,none
+Cryptomonas,Crypto,8,TRUE,13,genus,Klais et al. 2017
+Cyclotella,Diatom,28,TRUE,16,genus,none
+Cymatopleura,Diatom,3,TRUE,3,none,none
+Cymbella,Diatom,22,TRUE,8,none,none
+Diatoma,Diatom,6,TRUE,15,genus,none
+Dictyosphaerium,Green,7,TRUE,5,genus,none
+Fragilaria,Diatom,28,TRUE,20,genus,none
+Gomphonema,Diatom,15,TRUE,7,none,none
+Gyrosigma,Diatom,5,TRUE,11,none,none
+Hantzschia,Diatom,1,TRUE,2,family (Bacillariaceae),none
+Mallomonas,Chryso,12,TRUE,8,genus,Klais et al. 2017
+Melosira,Diatom,1,TRUE,11,none,none
+Microcystis,Cyano,6,TRUE,9,genus,none
+Monoraphidium,Green,18,TRUE,13,genus,none
+Navicula,Diatom,27,TRUE,41,none,none
+Nitzschia,Diatom,28,TRUE,61,genus,none
+Oocystis,Green,10,TRUE,12,genus,none
+Pediastrum,Green,8,TRUE,9,genus,none
+Planktosphaeria,Green,1,FALSE,1,order (Sphaeropleales),none
+Scenedesmus,Green,60,TRUE,22,genus,none
+Schroederia,Green,3,TRUE,2,order (Sphaeropleales),none
+Sphaerocystis,Green,3,TRUE,3,genus,none
+Staurastrum,Desmid,20,TRUE,22,genus,none
+Stephanodiscus,Diatom,10,TRUE,10,genus,none
+Surirella,Diatom,7,TRUE,21,none,none
+Tetraedron,Green,9,TRUE,12,genus,none

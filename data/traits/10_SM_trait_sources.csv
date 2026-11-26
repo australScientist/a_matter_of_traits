@@ -1,0 +1,15 @@
+trait,source,level_rule
+cell.biovolume,Rimet & Druart 2018,mean of taxa in genus
+surface.volume.ratio,Rimet & Druart 2018,mean of taxa in genus
+colony.cell.number,Rimet & Druart 2018,mean of taxa in genus
+organic.Carbon.ratio,Rimet & Druart 2018,mean of taxa in genus
+flagella,Rimet & Druart 2018,"mean of taxa in genus, then presence"
+Filament,Rimet & Druart 2018,"mean of taxa in genus, then > 0.5"
+maximum_growth_rate,Bruggeman 2011,"genus, else family, else order"
+phosphate_affinity,Bruggeman 2011,"genus, else family, else order"
+nfix,Klais et al. 2017,genus-level entry
+buoyancy,Klais et al. 2017,genus-level entry
+silica,Klais et al. 2017,genus-level entry
+fyco,Klais et al. 2017,genus-level entry
+chlc,Klais et al. 2017,genus-level entry
+mixotrophic,Klais et al. 2017; Kugrens & Lee 1991,1 if any species documented phagotrophic

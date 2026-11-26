@@ -1,0 +1,9 @@
+descriptor,R2,F,p,betadisper_p,PCoA1_pct,PCoA2_pct
+traits_cells,0.244,58.4,1e-4,0.069,47.9,16.7
+traits_biovolume,0.32,85,1e-4,0.001,43.7,17.6
+traits_cells_dom,0.259,63.1,1e-4,0.645,53.3,15.4
+traits_cells_klais,0.241,57.5,1e-4,0.1,46.9,17.5
+traits_cells_rimet,0.258,62.8,1e-4,0.048,51.8,16.6
+taxa_genus,0.096,19.2,1e-4,0.656,25.7,21.7
+taxa_genus_biovol,0.15,32.1,1e-4,0.001,30.9,23.4
+taxa_class,0.176,38.6,1e-4,0.001,59.5,15

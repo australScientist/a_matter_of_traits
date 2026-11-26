@@ -1,0 +1,6 @@
+descriptor,last_pre,R2_step_linear,p_linear,R2_step_spline,p_spline
+traits_cells,2018-06-26,0.115,0.001,0.034,0.004
+traits_biovolume,2018-02-08,0.155,0.001,0.08,0.001
+taxa_genus,2018-06-26,0.055,0.001,0.036,0.001
+taxa_genus_biovol,2018-02-08,0.11,0.001,0.082,0.001
+taxa_class,2018-06-26,0.091,0.001,0.071,0.001

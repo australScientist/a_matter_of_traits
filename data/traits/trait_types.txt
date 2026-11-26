@@ -1,0 +1,2 @@
+continuous: cell.biovolume,surface.volume.ratio,colony.cell.number,organic.Carbon.ratio,maximum_growth_rate,phosphate_affinity
+binary: nfix,flagella,buoyancy,Filament,mixotrophic,silica,fyco,chlc

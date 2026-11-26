@@ -1,0 +1,16 @@
+scenario,descriptor,n_reps,any_significant,W12
+1 unit,taxa_class,150,0.3,0.16
+1 unit,taxa_genus,150,0.4266666666666667,0.4266666666666667
+1 unit,taxa_genus_biovol,150,1,1
+1 unit,traits_biovolume,150,1,1
+1 unit,traits_cells,150,0.8866666666666667,0.8866666666666667
+"1 unit, 1/2 dates",taxa_class,150,0.14666666666666667,0.11333333333333333
+"1 unit, 1/2 dates",taxa_genus,150,0.18666666666666668,0.16666666666666666
+"1 unit, 1/2 dates",taxa_genus_biovol,150,0.4866666666666667,0.48
+"1 unit, 1/2 dates",traits_biovolume,150,0.6466666666666666,0.6466666666666666
+"1 unit, 1/2 dates",traits_cells,150,0.3466666666666667,0.34
+3 units,taxa_class,150,0.9866666666666667,0.9866666666666667
+3 units,taxa_genus,150,0.78,0.78
+3 units,taxa_genus_biovol,150,1,1
+3 units,traits_biovolume,150,1,1
+3 units,traits_cells,150,1,1

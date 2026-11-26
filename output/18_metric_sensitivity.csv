@@ -1,0 +1,9 @@
+weights,metric,R2_period,last_pre,first_post,rho_vs_gower
+cells,gower,0.244,2018-06-26,2018-08-13,1
+cells,eucl_z,0.194,2018-06-26,2018-08-13,0.976
+cells,eucl_range,0.22,2018-06-26,2018-08-13,0.988
+cells,manh_z,0.23,2018-06-26,2018-08-13,0.997
+biovolume,gower,0.32,2018-02-08,2018-05-16,1
+biovolume,eucl_z,0.267,2018-02-08,2018-05-16,0.986
+biovolume,eucl_range,0.257,2018-02-08,2018-05-16,0.981
+biovolume,manh_z,0.326,2018-02-08,2018-05-16,0.998
