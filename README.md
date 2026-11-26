@@ -2,11 +2,11 @@
 
 Code and derived data for
 
-> Marconi, G., et al. A matter of traits: an objective procedure to detect regime shifts in phytoplankton communities. *Limnology and Oceanography: Methods*. [[VERIFY: final title, authors, year and DOI]]
+> Marconi, G., et al. A matter of traits: an objective procedure to detect regime shifts in phytoplankton communities from short, irregular monitoring records *Limnology and Oceanography: Methods*. [[VERIFY: final title, authors, year and DOI]]
 
 The phytoplankton counts and the environmental monitoring data of Los Molinos reservoir belong to R. Bazán (Universidad Nacional de Córdoba) and are not public. This package contains the **derived data on which the detection procedure operates**: the dissimilarity matrices between samples, the community-weighted trait means and the sample metadata. With them, every analysis of the paper that does not need the raw counts can be rerun, and its output is identical to that of the original analysis.
 
-To apply the procedure to other data, use the R package `traitshift` [[VERIFY: GitHub URL and Zenodo DOI of traitshift]], which includes simulated example data.
+To apply the procedure to other data, use the R package `traitshift` github.com/australScientist/TraitShift (zenodo DOI), which includes simulated example data.
 
 ## How to run
 
