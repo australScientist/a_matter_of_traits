@@ -1,8 +1,10 @@
 # Figures that can be drawn from the derived data: Figs. 3 and 4 of the manuscript and
-# Figs. S2, S3, S4 and S9 of the Supporting Information.
-# Run after 01_main_analysis.R and 02_robustness.R:  Rscript 03_figures.R   (about 1 minute)
-# Fig. 3b needs output/24_null_maxF.csv (08_null_maxF.R). Fig. 3c uses the trait null model, which needs the counts; its distributions are read from
-# data/precomputed/2_null_distributions.rds.
+# Figs. S3, S4, S5 and S10 of the Supporting Information.
+# Run after 01_main_analysis.R, 02_robustness.R and 08_null_maxF.R:  Rscript 03_figures.R   (about 1 minute)
+#
+# Fig. 3b reads output/24_null_maxF.csv (08_null_maxF.R). Fig. 3c uses the trait null model, which needs
+# the counts; its distributions are read from data/precomputed/2_null_distributions.rds.
+# Some file names keep the earlier numbering of the supplementary figures (noted at each figure).
 
 source("R/functions.R")
 source("R/palette.R")
@@ -12,23 +14,34 @@ suppressPackageStartupMessages({
 })
 dir.create("output/figures", showWarnings = FALSE)
 
-samples     <- load_samples() %>% mutate(phase = factor(phase_of(date), levels = names(phase_cols)))
+samples <- load_samples() %>%
+  mutate(phase = factor(phase_of(date), levels = names(phase_cols)))
 descriptors <- load_descriptors()
 
+# Shared look of all panels -------------------------------------------------------------------------------
 theme_base <- theme_minimal(base_size = 9) +
   theme(panel.grid.minor = element_blank(),
         panel.grid.major = element_line(colour = grid_col, linewidth = 0.3),
-        axis.text = element_text(colour = ink2), axis.title = element_text(colour = ink),
-        plot.title = element_text(colour = ink, face = "bold", size = 9),
-        strip.text = element_text(colour = ink, hjust = 0),
-        plot.background = element_rect(fill = "white", colour = NA))
-theme_paper    <- theme_base + theme(legend.title = element_text(colour = ink2, size = 8),
-                                     legend.text = element_text(colour = ink, size = 8))   # Figs. 4 and 5
-theme_nolegend <- theme_base + theme(legend.position = "none")
+        axis.text        = element_text(colour = ink2),
+        axis.title       = element_text(colour = ink),
+        plot.title       = element_text(colour = ink, face = "bold", size = 9),
+        strip.text       = element_text(colour = ink, hjust = 0),
+        plot.background  = element_rect(fill = "white", colour = NA))
+theme_paper <- theme_base +
+  theme(legend.title = element_text(colour = ink2, size = 8),
+        legend.text  = element_text(colour = ink, size = 8))
+theme_nolegend <- theme_base +
+  theme(legend.position = "none")
+
+# Save a figure as PNG (300 dpi) and PDF; sizes in mm
 save_fig <- function(fig, name, w, h) {
-  ggsave(file.path("output/figures", paste0(name, ".png")), fig, width = w, height = h, units = "mm", dpi = 300, bg = "white")
-  ggsave(file.path("output/figures", paste0(name, ".pdf")), fig, width = w, height = h, units = "mm", bg = "white")
+  ggsave(file.path("output/figures", paste0(name, ".png")), fig,
+         width = w, height = h, units = "mm", dpi = 300, bg = "white")
+  ggsave(file.path("output/figures", paste0(name, ".pdf")), fig,
+         width = w, height = h, units = "mm", bg = "white")
 }
+
+# Colour and line type of each descriptor, and labels of the thinning scenarios
 descriptor_info <- desc_tbl
 pal <- deframe(select(descriptor_info, descriptor, colour))
 lty <- deframe(select(descriptor_info, descriptor, linetype))
@@ -41,13 +54,22 @@ F_profiles <- read_csv("output/3_F_profiles.csv", show_col_types = FALSE)
 nulls      <- readRDS("data/precomputed/2_null_distributions.rds")
 detection  <- read_csv("output/11_detection_apriori_window.csv", show_col_types = FALSE)
 
+# a: pseudo-F of every split, scaled to the maximum of each descriptor so that profiles are comparable
 profiles <- F_profiles %>%
   inner_join(descriptor_info, by = "descriptor") %>%
-  group_by(descriptor) %>% mutate(F_scaled = F / max(F)) %>% ungroup()
-peaks <- profiles %>% group_by(descriptor) %>% slice_max(F_scaled, n = 1) %>% ungroup()
-end_labels <- profiles %>%
-  group_by(descriptor) %>% slice_max(last_pre, n = 1) %>% ungroup() %>%
-  arrange(F_scaled) %>% mutate(y_label = seq(0.12, 0.62, length.out = n()))
+  group_by(descriptor) %>%
+  mutate(F_scaled = F / max(F)) %>%
+  ungroup()
+peaks <- profiles %>%                                   # the break of each descriptor
+  group_by(descriptor) %>%
+  slice_max(F_scaled, n = 1) %>%
+  ungroup()
+end_labels <- profiles %>%                              # labels at the right end, spread vertically
+  group_by(descriptor) %>%
+  slice_max(last_pre, n = 1) %>%
+  ungroup() %>%
+  arrange(F_scaled) %>%
+  mutate(y_label = seq(0.12, 0.62, length.out = n()))
 
 fig3a <- ggplot(profiles, aes(last_pre, F_scaled, colour = descriptor, linetype = descriptor)) +
   annotate("rect", xmin = as.Date("2017-12-01"), xmax = as.Date("2018-02-28"),
@@ -68,11 +90,14 @@ fig3a <- ggplot(profiles, aes(last_pre, F_scaled, colour = descriptor, linetype 
   theme_nolegend
 
 # b: permutation null of the maximum pseudo-F (whole search repeated in every permutation of dates)
+# Each permuted maximum is divided by the observed maximum, so the observed value is 1 for every descriptor
 null_maxF <- read_csv("output/24_null_maxF.csv", show_col_types = FALSE) %>%
   inner_join(descriptor_info, by = "descriptor") %>%
-  mutate(ratio = null_F / observed_F, label = factor(label, levels = rev(descriptor_info$label)))
-p_maxF <- null_maxF %>% group_by(descriptor, label) %>%
-  summarise(p = (sum(null_F >= first(observed_F)) + 1) / (n() + 1), .groups = "drop") %>%
+  mutate(ratio = null_F / observed_F,
+         label = factor(label, levels = rev(descriptor_info$label)))
+p_maxF <- null_maxF %>%
+  group_by(descriptor, label) %>%
+  summarise(p = perm_p_value(null_F, first(observed_F)), .groups = "drop") %>%
   mutate(p_lab = sprintf("p = %.3f", p))
 x_lab <- 1.08
 fig3b <- ggplot(null_maxF, aes(ratio, label)) +
@@ -86,13 +111,14 @@ fig3b <- ggplot(null_maxF, aes(ratio, label)) +
   labs(x = "Maximum pseudo-F / observed", y = NULL, title = "b  Significance of the break") +
   theme_nolegend + theme(panel.grid.major.y = element_blank())
 
+# c: R2 between periods with the real traits (line) and with traits shuffled among genera (histogram)
 null_tbl <- bind_rows(
   tibble(weighting = "Cell-weighted",      R2 = nulls$cells$null,     obs = nulls$cells$obs),
   tibble(weighting = "Biovolume-weighted", R2 = nulls$biovolume$null, obs = nulls$biovolume$obs)) %>%
   mutate(weighting = fct_inorder(weighting))
 observed <- null_tbl %>%
   group_by(weighting) %>%
-  summarise(obs = first(obs), p = (sum(R2 >= obs) + 1) / (n() + 1), .groups = "drop") %>%
+  summarise(obs = first(obs), p = perm_p_value(R2, first(obs)), .groups = "drop") %>%
   mutate(label = sprintf("observed\np = %.3f", p))
 fig3c <- ggplot(null_tbl, aes(R2)) +
   geom_histogram(bins = 40, fill = "#c9c7c1", colour = "white", linewidth = 0.2) +
@@ -103,6 +129,7 @@ fig3c <- ggplot(null_tbl, aes(R2)) +
   labs(x = expression(R^2~"pre vs post"), y = "Random trait assignments", title = "c  Trait null model") +
   theme_nolegend
 
+# d: heat map of rates (descriptor x thinning scenario); also used in Fig. S3
 heat <- function(df, value, title, legend_name, key_width = 8) {
   df %>%
     inner_join(descriptor_info, by = "descriptor") %>%
@@ -123,6 +150,7 @@ heat <- function(df, value, title, legend_name, key_width = 8) {
 }
 fig3d <- heat(detection, W12, "d  Detection with thinned data", "Detection rate", key_width = 12)
 
+# Layout: a on top (with room on the right for the labels), b and c side by side, d below
 fig3 <- (fig3a + theme(plot.margin = margin(6, 105, 6, 6))) /
   ((fig3b | fig3c) + plot_layout(widths = c(1.25, 1))) /
   (fig3d + theme(plot.margin = margin(6, 60, 6, 6))) +
@@ -130,7 +158,12 @@ fig3 <- (fig3a + theme(plot.margin = margin(6, 105, 6, 6))) /
 save_fig(fig3, "Figure_3", 180, 215)
 
 # Fig. 4a-c: similarity between samples ordered by date ------------------------------------------------------
-ord <- samples %>% arrange(date, unit) %>% mutate(pos = row_number())
+# Samples ordered by date (and unit within a date); pos is the position along both axes
+ord <- samples %>%
+  arrange(date, unit) %>%
+  mutate(pos = row_number())
+
+# Similarity (1 - dissimilarity / maximum) of every pair of samples, in long format for geom_raster
 similarity_long <- function(D, name) {
   M <- as.matrix(D)[ord$sample, ord$sample]
   S <- 1 - M / max(M)
@@ -140,12 +173,18 @@ similarity_long <- function(D, name) {
 panels <- c(traits_cells = "a  Traits, cell-weighted",
             traits_biovolume = "b  Traits, biovolume-weighted",
             taxa_genus = "c  Genera, cell-weighted")
-sim <- imap_dfr(descriptors[names(panels)], ~ similarity_long(.x, panels[[.y]])) %>%
+sim <- descriptors[names(panels)] %>%
+  imap(\(D, name) similarity_long(D, panels[[name]])) %>%
+  list_rbind() %>%
   mutate(panel = factor(panel, levels = panels))
+
+# White lines at the breaks: cell-weighted (after 26 Jun 2018) and biovolume-weighted (after 8 Feb 2018)
 break_pos <- function(last_pre) max(ord$pos[ord$date <= last_pre]) + 0.5
-breaks_tbl <- tibble(pos = c(break_pos(as.Date("2018-06-26")), break_pos(as.Date("2018-02-08"))),
+breaks_tbl <- tibble(pos  = c(break_pos(as.Date("2018-06-26")), break_pos(as.Date("2018-02-08"))),
                      type = c("cells", "biovolume"))
-year_ticks <- ord %>% group_by(year = format(date, "%Y")) %>% summarise(pos = min(pos)) %>%
+year_ticks <- ord %>%
+  group_by(year = format(date, "%Y")) %>%
+  summarise(pos = min(pos)) %>%
   filter(year != "2016")                     # 2016 has a single date; its label would overlap
 fig4 <- ggplot(sim, aes(col, row, fill = similarity)) +
   geom_raster() +
@@ -162,21 +201,30 @@ fig4 <- ggplot(sim, aes(col, row, fill = similarity)) +
         legend.position = "right", legend.key.height = unit(10, "mm"), legend.key.width = unit(2.5, "mm"))
 
 # Fig. 4d-f: trajectory of date centroids in PCoA space ------------------------------------------------------
+# First two principal coordinates of every sample, and the share of variation of each axis
 pcoa_scores <- function(D) {
-  p <- cmdscale(D, k = 2, eig = TRUE)
-  pos_eig <- p$eig[p$eig > 0]
-  list(scores = as_tibble(p$points, .name_repair = ~ c("Axis1", "Axis2")) %>% mutate(sample = samples$sample),
-       pct = round(100 * p$eig[1:2] / sum(pos_eig), 1))
+  pcoa <- cmdscale(D, k = 2, eig = TRUE)
+  positive_eigenvalues <- pcoa$eig[pcoa$eig > 0]
+  scores <- as_tibble(pcoa$points, .name_repair = ~ c("Axis1", "Axis2")) %>%
+    mutate(sample = samples$sample)
+  list(scores = scores,
+       pct    = round(100 * pcoa$eig[1:2] / sum(positive_eigenvalues), 1))
 }
 pc <- map(descriptors[c("traits_cells", "traits_biovolume", "taxa_genus")], pcoa_scores)
 first_post <- c(traits_cells = as.Date("2018-08-13"), traits_biovolume = as.Date("2018-05-16"),
                 taxa_genus = as.Date("2018-08-13"))
+# Trajectory of the community: one arrow from the centroid of each date to the next
 trajectory_plot <- function(name, title) {
-  s <- pc[[name]]$scores %>% left_join(samples, by = "sample")
-  cent <- s %>% group_by(date, phase) %>% summarise(Axis1 = mean(Axis1), Axis2 = mean(Axis2), .groups = "drop") %>%
-    arrange(date) %>% mutate(xend = lead(Axis1), yend = lead(Axis2), seg_phase = lead(phase))
+  s <- pc[[name]]$scores %>%
+    left_join(samples, by = "sample")
+  cent <- s %>%
+    group_by(date, phase) %>%
+    summarise(Axis1 = mean(Axis1), Axis2 = mean(Axis2), .groups = "drop") %>%
+    arrange(date) %>%
+    mutate(xend = lead(Axis1), yend = lead(Axis2), seg_phase = lead(phase))
   # hue = period of the arrival date; lightness = date within the period (light = early, dark = late)
-  cent <- cent %>% group_by(seg_phase) %>%
+  cent <- cent %>%
+    group_by(seg_phase) %>%
     mutate(rel = if (n() > 1) (row_number() - 1) / (n() - 1) else 1,
            col = case_when(seg_phase == "pre"  ~ colorRampPalette(phase_ramp$pre)(101)[round(rel * 100) + 1],
                            seg_phase == "post" ~ colorRampPalette(phase_ramp$post)(101)[round(rel * 100) + 1],
@@ -210,13 +258,14 @@ fig_traj <- trajectory_plot("traits_cells", "d  Traits, cell-weighted") +
 fig4_all <- wrap_elements(full = fig4) / wrap_elements(full = fig_traj) + plot_layout(heights = c(1, 1.08))
 save_fig(fig4_all, "Figure_4", 180, 150)
 
-# Fig. S2: robustness ----------------------------------------------------------------------------------------
+# Fig. S3: robustness (file name Fig_S2_robustness) ----------------------------------------------------------
 false_alarm <- read_csv("output/12_false_alarm_rates.csv", show_col_types = FALSE)
 boot_freq   <- read_csv("output/13_break_date_bootstrap_freq.csv", show_col_types = FALSE)
 figS2a <- heat(detection, W12, "a  Detection (12-month window)", "Rate")
 figS2b <- heat(false_alarm, false_alarm_rate, "b  Significant breaks after the shift", "Rate") +
   theme(axis.text.y = element_blank())
-boot_plot <- boot_freq %>% inner_join(descriptor_info, by = "descriptor") %>%
+boot_plot <- boot_freq %>%
+  inner_join(descriptor_info, by = "descriptor") %>%
   mutate(label = factor(label, levels = rev(descriptor_info$label)))
 figS2c <- ggplot(boot_plot, aes(last_pre, label, size = prop, colour = label)) +
   annotate("rect", xmin = refilling_onset, xmax = as.Date("2018-02-28"), ymin = -Inf, ymax = Inf,
@@ -232,7 +281,7 @@ figS2 <- ((figS2a | figS2b) + plot_layout(guides = "collect") & theme(legend.pos
   plot_layout(heights = c(1.15, 0.85))
 save_fig(figS2, "Fig_S2_robustness", 180, 190)
 
-# Fig. S3: detection with different definitions of a detection --------------------------------------------
+# Fig. S4: detection with different definitions of a detection (file name Fig_S3_window_sensitivity) ---------
 window_cols <- c("Data-defined window" = "#a3a29c", setNames(mag_ramp(3), c("6 months", "12 months", "18 months")))
 det <- detection %>%
   inner_join(descriptor_info, by = "descriptor") %>%
@@ -254,7 +303,7 @@ figS4 <- ggplot(det_long, aes(scenario, rate)) +
         plot.caption = element_text(colour = ink2, size = 7))
 save_fig(figS4, "Fig_S3_window_sensitivity", 180, 160)
 
-# Fig. S4: step beyond a linear and a flexible trend --------------------------------------------------------
+# Fig. S5: step beyond a linear and a flexible trend (file name Fig_S4_step_vs_trend) ------------------------
 st <- read_csv("output/14_step_beyond_spline_main.csv", show_col_types = FALSE) %>%
   inner_join(descriptor_info, by = "descriptor") %>%
   mutate(label = factor(label, levels = rev(descriptor_info$label)))
@@ -271,7 +320,7 @@ figS5 <- ggplot(st, aes(y = label)) +
   theme_nolegend + theme(plot.caption = element_text(colour = ink2, size = 7))
 save_fig(figS5, "Fig_S4_step_vs_trend", 140, 70)
 
-# Fig. S9: spatial heterogeneity and dominance ---------------------------------------------------------------
+# Fig. S10: spatial heterogeneity and dominance (file name Fig_S9_heterogeneity_dominance) -------------------
 het <- read_csv("output/8_mosaic_heterogeneity.csv", show_col_types = FALSE) %>%
   inner_join(descriptor_info, by = "descriptor") %>%
   select(label, spatial_pre, spatial_post, spatial_p, depth_pre, depth_post) %>%
@@ -280,7 +329,9 @@ het <- read_csv("output/8_mosaic_heterogeneity.csv", show_col_types = FALSE) %>%
   mutate(kind = recode(kind, spatial = "Between locations", depth = "Between depths"),
          period = factor(period, levels = c("pre", "post"), labels = c("Before", "After")),
          label = factor(label, levels = descriptor_info$label))
-p_lab <- het %>% filter(kind == "Between locations", period == "After") %>% mutate(txt = sprintf("p = %.3f", spatial_p))
+p_lab <- het %>%
+  filter(kind == "Between locations", period == "After") %>%
+  mutate(txt = sprintf("p = %.3f", spatial_p))
 figS9a <- ggplot(het, aes(period, d, group = kind)) +
   geom_line(aes(linetype = kind), linewidth = 0.5, colour = ink2) +
   geom_point(aes(shape = kind, colour = period, fill = period), size = 2, stroke = 0.8) +

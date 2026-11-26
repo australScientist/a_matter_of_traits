@@ -15,19 +15,39 @@ dir.create("output", showWarnings = FALSE)
 
 level <- read_csv("data/hydrology/los_molinos_level_daily.csv", show_col_types = FALSE)
 curve <- read_csv("data/hydrology/level_volume_curve_2003.csv", show_col_types = FALSE)
+
+# Volume (hm3) at any level (m): monotone spline through the level-volume curve, so that a higher level
+# always means a larger volume
 volume <- splinefun(curve$level_m, curve$volume_hm3, method = "monoH.FC")
 
-# Lowest level in a window, then the highest level after it
+# A refill within a search window: the lowest level in the window, then the highest level after it
 refill <- function(from, to) {
-  x  <- level %>% filter(date >= as.Date(from), date <= as.Date(to))
-  lo <- x %>% slice_min(level_m, n = 1, with_ties = FALSE)
-  hi <- x %>% filter(date > lo$date) %>% slice_max(level_m, n = 1, with_ties = FALSE)
-  tibble(from = lo$date, level_from = lo$level_m, to = hi$date, level_to = hi$level_m,
-         rise_m = hi$level_m - lo$level_m, volume_from = volume(lo$level_m), volume_to = volume(hi$level_m),
-         volume_increase_pct = 100 * (volume(hi$level_m) / volume(lo$level_m) - 1))
+  in_window <- level %>%
+    filter(date >= as.Date(from), date <= as.Date(to))
+  lowest <- in_window %>%
+    slice_min(level_m, n = 1, with_ties = FALSE)
+  highest_after <- in_window %>%
+    filter(date > lowest$date) %>%
+    slice_max(level_m, n = 1, with_ties = FALSE)
+
+  tibble(from                = lowest$date,
+         level_from          = lowest$level_m,
+         to                  = highest_after$date,
+         level_to            = highest_after$level_m,
+         rise_m              = highest_after$level_m - lowest$level_m,
+         volume_from         = volume(lowest$level_m),
+         volume_to           = volume(highest_after$level_m),
+         volume_increase_pct = 100 * (volume(highest_after$level_m) / volume(lowest$level_m) - 1))
 }
-refills <- bind_rows(`2011-12` = refill("2011-09-01", "2012-06-30"), `2013-14` = refill("2013-09-01", "2014-06-30"),
-                     `2017-18` = refill("2017-09-01", "2018-06-30"), `2020-21` = refill("2020-09-01", "2021-06-30"),
-                     .id = "refill") %>% mutate(across(where(is.double), ~ round(.x, 2)))
+
+# The four refills with comparable data, each searched from September to the following June
+refills <- bind_rows(
+  `2011-12` = refill("2011-09-01", "2012-06-30"),
+  `2013-14` = refill("2013-09-01", "2014-06-30"),
+  `2017-18` = refill("2017-09-01", "2018-06-30"),
+  `2020-21` = refill("2020-09-01", "2021-06-30"),
+  .id = "refill") %>%
+  mutate(across(where(is.double), ~ round(.x, 2)))
+
 write_csv(refills, "output/refills.csv")
 print(refills)
