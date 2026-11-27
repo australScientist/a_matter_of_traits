@@ -7,6 +7,13 @@
 # and are not run here: the null model that shuffles traits among genera (its results are in
 # data/precomputed/) and the leave-one-genus-out analysis. Because the null model drew random numbers
 # before the change-point search, the random stream is advanced by the same number of draws (see below).
+#
+# Revision of 27 Nov 2026: the p-values of the baseline PERMANOVA, of the dispersion test and of the step
+# versus trend now come from permutations of whole dates (step_test(), period_test() and
+# dispersion_test() in R/functions.R). The adonis2() and permutest() calls are kept, because they give the
+# R2 and F and because their permutations are part of the random stream on which the later sections
+# depend; their p-values, which permute single samples, are no longer reported. The new tests run with
+# their own seeds (with_own_seed()), so every other result of this script is unchanged.
 
 source("R/functions.R")
 set.seed(2026)
@@ -34,7 +41,7 @@ stopifnot(abs(own_F[["F"]]  - adonis_F$F[1])  < 1e-8,
 # 1. Baseline: PERMANOVA, dispersion and PCoA ------------------------------------------------------------
 # For each descriptor: how much of the variation the two periods explain (PERMANOVA), whether the
 # spread of samples differs between periods (betadisper), and how much variation the first two
-# principal coordinates carry.
+# principal coordinates carry. p and betadisper_p permute whole dates (see the note at the top).
 baseline_of <- function(D, descriptor) {
   permanova  <- adonis2(D ~ period, data = samples, permutations = 9999)
   dispersion <- permutest(betadisper(D, samples$period), permutations = 999)
@@ -45,8 +52,8 @@ baseline_of <- function(D, descriptor) {
   tibble(descriptor   = descriptor,
          R2           = round(permanova$R2[1], 3),
          F            = round(permanova$F[1], 1),
-         p            = permanova$`Pr(>F)`[1],
-         betadisper_p = dispersion$tab$`Pr(>F)`[1],
+         p            = with_own_seed(3001, period_test(D, samples, "2018-06-14", n_perm = 9999)),
+         betadisper_p = with_own_seed(3002, dispersion_test(D, samples, "2018-06-14", n_perm = 999)),
          PCoA1_pct    = share_of(1),
          PCoA2_pct    = share_of(2))
 }
@@ -109,8 +116,8 @@ write_csv(F_profiles, "output/3_F_profiles.csv")
 
 # 4. Step versus gradual trend (Table 1, Fig. S5) --------------------------------------------------------
 # Does a step explain variation beyond a linear time trend? Model: unit + years (+ step), with the
-# step tested by its marginal contribution and permutations restricted within sampling units, so that
-# differences between units do not leak into the test. Steps on two fixed dates (July and March 2018).
+# step tested by its marginal contribution. Steps on two fixed dates (July and March 2018). R2 come from
+# adonis2; p from step_test(), which permutes whole dates (see the note at the top).
 samples <- samples %>%
   mutate(years    = as.numeric(date - min(date)) / 365,       # time since the first sample
          step_jul = factor(date > as.Date("2018-07-01")),
@@ -125,9 +132,9 @@ step_vs_trend_of <- function(D, descriptor) {
   tibble(descriptor              = descriptor,
          R2_trend                = round(trend_only["years", "R2"], 3),
          R2_stepJul_beyond_trend = round(step_july["step_jul", "R2"], 3),
-         p_Jul                   = step_july["step_jul", "Pr(>F)"],
+         p_Jul                   = with_own_seed(3003, step_test(D, samples, "2018-07-01", "linear"))$p_step,
          R2_stepMar_beyond_trend = round(step_march["step_mar", "R2"], 3),
-         p_Mar                   = step_march["step_mar", "Pr(>F)"])
+         p_Mar                   = with_own_seed(3004, step_test(D, samples, "2018-03-01", "linear"))$p_step)
 }
 step_trend <- descriptors %>%
   imap(step_vs_trend_of) %>%

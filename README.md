@@ -21,7 +21,8 @@ Rscript 05_clusters.R        # a few seconds
 Rscript 06_dependence_dispersion.R  # about 2 minutes
 Rscript 07_units_sensitivity.R      # about 1 hour
 Rscript 08_null_maxF.R              # about 15 minutes; permutation null behind the p-values of Table 1
-Rscript 09_tables_SI.R              # a few seconds; Tables S1 to S15 as one Word file (needs flextable, officer)
+Rscript 10_temporal_memory.R        # about 1 to 2 hours; temporal memory and calibrated change-point test
+Rscript 09_tables_SI.R              # a few seconds; Tables S1 to S16 as one Word file (needs flextable, officer)
 ```
 
 Run `08_null_maxF.R` before `03_figures.R` (Fig. 3b reads its output).
@@ -34,6 +35,7 @@ Results are written to `output/` and figures to `output/figures/`. The files alr
 |---|---|---|
 | Table 1: break dates, pseudo-F, R², p from date permutation | `01_main_analysis.R` | `3_change_point.csv` |
 | Table 1: R² with and without the step, beyond linear and flexible trends | `01_main_analysis.R` | `19_step_trend_model_R2.csv` |
+| Table 1: p of the step at the break, beyond linear and flexible trends (whole dates permuted) | `02_robustness.R` | `14_step_beyond_spline_main.csv` |
 | Table S4: baseline PERMANOVA, dispersion and PCoA for all descriptors | `01_main_analysis.R` | `1_baseline.csv`, `3_change_point.csv`, `4_step_vs_trend.csv` |
 | Table S12: sensitivity to the distance metric | `01_main_analysis.R` | `18_metric_sensitivity.csv` |
 | Table S6, Fig. S10: spatial heterogeneity, variation partitioning and dominance | `01_main_analysis.R`, `03_figures.R` | `8_mosaic_heterogeneity.csv`, `8_mosaic_dominance.csv` |
@@ -46,7 +48,8 @@ Results are written to `output/` and figures to `output/figures/`. The files alr
 | Table S13, Fig. S12: descriptive hierarchical clustering | `05_clusters.R` | `21_cluster_agreement.csv`, `output/figures/Fig_S11_clusters` |
 | Fig. 3b: permutation null of the maximum pseudo-F (the permutations behind the p-values of Table 1) | `08_null_maxF.R` | `24_null_maxF.csv` |
 | Table S15: sampling units instead of locations as resampling units | `07_units_sensitivity.R` | `23_unit_similarity.csv`, `23_detection_units.csv`, `23_bootstrap_units.csv` |
-| Tables S1 to S15 (Word file) | `09_tables_SI.R` | `Tables_S1_S15.docx` |
+| Table S16: temporal memory and change-point test calibrated for it | `10_temporal_memory.R` | `25_temporal_memory.csv`, `25_calibrated_change_point.csv` |
+| Tables S1 to S16 (Word file) | `09_tables_SI.R` | `Tables_S1_S16.docx` |
 | Table S14: change-point test with block permutation of dates (temporal autocorrelation) and with a dispersion-robust statistic | `06_dependence_dispersion.R` | `22_table_S14.csv`, `22_block_permutation.csv`, `22_welch_statistic.csv` |
 
 Figure numbers follow the manuscript (version 4, where the site map is Fig. S1); some file names in `output/figures/` keep the earlier numbering (for example, `Fig_S2_robustness` is Fig. S3 and `Fig_S11_clusters` is Fig. S12).
@@ -91,12 +94,16 @@ The descriptors are:
 
 Sampling units: inlets of the San Pedro (TSP) and Los Espinillos (TLE) rivers, confluence of Los Reartes and Del Medio (TLR), drinking-water intakes on the San Pedro (WISP) and Los Espinillos (WILE) arms, centre of the reservoir (CLM1 below the surface, CLM2 at the lower limit of the euphotic zone) and dam (DLM1, DLM2). WISP and WILE were sampled from February 2018 onward; the other five locations span the whole record.
 
+## Tests that permute whole dates (revision of 27 November 2026)
+
+The samples of one date share variation, so every permutation test moves all the samples of a date together. An earlier version tested the step versus trend, the baseline PERMANOVA and the dispersion tests by permuting single samples (within sampling units for the step), which treats samples of the same date as independent and gave p-values that were far too small. Those tests now permute whole dates (`step_test()`, `period_test()` and `dispersion_test()` in `R/functions.R`) and run with their own seeds, so every other result is unchanged. The planted-shift and colony-volume results in `data/precomputed/` were recomputed from the counts with the same test.
+
 ## Exact reproduction
 
 Every permutation test uses the seed and the order of calculation of the original analysis, so the p-values are reproduced exactly, not only within Monte Carlo error. Three details make this possible:
 
 - The trait null model, which needs the counts, drew random numbers before the change-point search. `01_main_analysis.R` advances the random stream by the same number of draws.
-- The order of the sampling units and of the five long-term locations is that of the original analysis, because permutations within units and random draws of locations depend on it.
+- The order of the sampling units and of the five long-term locations is that of the original analysis, because random draws of locations depend on it.
 - `01_main_analysis.R` also runs a preliminary thinning analysis that is not reported in the paper, because the spatial-heterogeneity tests that follow it depend on its random draws.
 
 The outputs of all six scripts were checked against those of the original analysis: every table is identical, and the F profiles differ only in the 14th decimal because the distance matrices are stored as text. Verified with R 4.3.3, vegan 2.6-4 and permute 0.9-7. Other versions should give the same estimates; p-values could differ within Monte Carlo error if the permutation algorithms change.

@@ -1,0 +1,6 @@
+descriptor,r_lag1,p_memory,tau_days,median_gap_days,phi
+traits_cells,0.13,0.034,130,31,0.33
+traits_biovolume,0.36,0.001,54,31,0.56
+taxa_genus,0.31,0.001,99,31,0.41
+taxa_genus_biovol,0.44,0.001,47,31,0.52
+taxa_class,0.26,0.037,78,31,0.35

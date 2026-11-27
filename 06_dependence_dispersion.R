@@ -100,11 +100,11 @@ welch_res <- tibble(descriptor = main_descriptors) %>%
   mutate(res = map(descriptor, \(dsc) search_break(D2_list[[dsc]], "welch", 1, n_perm))) %>%
   unnest(res)
 
-# Dispersion test at the detected break (betadisper, 999 permutations), to state where dispersion differs
+# Dispersion test at the detected break (betadisper, 999 permutations of whole dates; dispersion_test() in
+# R/functions.R), to state where dispersion differs. The earlier version permuted single samples.
 set.seed(2037)
 dispersion_p <- function(descriptor, last_pre) {
-  side <- factor(samples$date > last_pre, labels = c("before", "after"))
-  permutest(betadisper(descriptors[[descriptor]], side), permutations = 999)$tab$`Pr(>F)`[1]
+  dispersion_test(descriptors[[descriptor]], samples, last_pre, n_perm = 999)
 }
 breaks <- block_res %>%
   filter(L == 1) %>%
