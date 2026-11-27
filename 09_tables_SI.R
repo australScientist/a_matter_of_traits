@@ -1,5 +1,5 @@
-# Supporting Information tables S1 to S15 as one Word document (output/Tables_S1_S15.docx).
-# Run from the repository root after scripts 01 to 07:  Rscript 09_tables_SI.R
+# Supporting Information tables S1 to S16 as one Word document (output/Tables_S1_S16.docx).
+# Run from the repository root after scripts 01 to 08 and 10:  Rscript 09_tables_SI.R
 # Every number is read from output/ or data/; nothing is typed by hand except labels and captions.
 
 suppressPackageStartupMessages({ library(tidyverse); library(flextable); library(officer) })
@@ -116,11 +116,13 @@ s4 <- base %>% left_join(cp, by = "descriptor") %>% left_join(svt, by = "descrip
                                                              paste0(f3(R2_step_spline), " (", f3(p_spline), ")")))
 doc <- add_table(doc, "S4", paste(
   "Results for all descriptors and sensitivity variants. Baseline: PERMANOVA between the periods before and after",
-  "mid-June 2018 (9999 permutations) and test of homogeneity of dispersions (betadisper, 999 permutations).",
+  "mid-June 2018 (9999 permutations of whole dates) and test of homogeneity of dispersions (betadisper, 999",
+  "permutations of whole dates).",
   "Break: change point with maximum pseudo-F, p from 999 permutations of dates that include the search. Steps:",
   "increase in R² when a step in July or March 2018 is added to a model with sampling unit and a linear trend,",
   "and when a step at the detected break is added to a model with sampling unit and a natural cubic spline (3 df;",
-  "main descriptors only); permutations within sampling units. Dominant class: binary traits coded by the dominant",
+  "main descriptors only); steps tested by permuting whole dates (999 permutations, 9999 for the step at the break).",
+  "Dominant class: binary traits coded by the dominant",
   "class instead of proportions; Klais fraction and Rimet coding: alternative codings of mixotrophy."),
   flextable(s4) %>% style(c(1.4, 0.9, 0.75, 0.6, 1.2, 0.5, 0.75, 0.85, 0.85, 0.85)), orient = "landscape")
 
@@ -235,7 +237,8 @@ doc <- add_table(doc, "S9", paste(
   "planted date, and with a significant step at the break beyond a linear and a flexible (natural cubic spline,",
   "3 df) trend. Changes planted into the post-shift stretch after its 6th, 9th or 12th date, as steps or as gradual",
   "drifts of the same final size; None, the stretch without a planted change. Series built with the 21 combinations",
-  "of five of the seven long-term sampling units; 999 date permutations."),
+  "of five of the seven long-term sampling units; 999 date permutations for the break, and 999 permutations of",
+  "whole dates for the steps."),
   flextable(s9) %>% merge_v(j = c("Planted change", "Size (fraction of the observed shift)")) %>%
     style(c(0.9, 0.9, 1.3, 0.5, 0.7, 0.9, 0.8, 0.8, 0.8)), orient = "landscape")
 
@@ -272,7 +275,7 @@ doc <- body_add_fpar(doc, fpar(ftext("Table S11. ", update(cap_prop, bold = TRUE
   "drawn log-uniformly between 1/1.5 and 1.5 (moderate) or 1/2 and 2 (large), applied consistently to biovolume",
   "weights, cell volume and surface-to-volume ratio; 100 replicates, 999 date permutations each. (b) Cell volume",
   "of colonial genera replaced by the volume of the colony envelope including mucilage divided by the number of",
-  "cells per colony (Rimet and Druart 2018)."), cap_prop)))
+  "cells per colony (Rimet and Druart 2018); steps tested with 999 permutations of whole dates."), cap_prop)))
 doc <- sub_head(doc, "(a) Random errors in cell volume")
 doc <- body_add_flextable(doc, flextable(vol) %>% merge_v(j = 1) %>% style(c(1.2, 1.5, 0.8, 0.8, 1.2, 0.9)), align = "left")
 doc <- sub_head(doc, "(b) Colony volume including mucilage")
@@ -316,7 +319,7 @@ doc <- add_table(doc, "S14", paste(
   "permutations. Columns 6 and 7: change point found when the whole search is repeated with a statistic robust to",
   "unequal dispersions, the two-group Welch statistic on distances (Alekseyenko 2016), and its p-value from 999",
   "free permutations of dates. Column 8: test of homogeneity of multivariate dispersions between the samples",
-  "before and after the change point of Table 1 (betadisper, 999 permutations; Anderson 2006)."),
+  "before and after the change point of Table 1 (betadisper, 999 permutations of whole dates; Anderson 2006)."),
   flextable(s14) %>% style(c(1.4, 0.8, 0.7, 0.7, 0.7, 1.7, 0.7, 0.8)), orient = "landscape")
 
 # S15. Sampling units instead of locations ----------------------------------------------------------------------
@@ -366,7 +369,33 @@ if (file.exists("output/23_bootstrap_units.csv")) {
   doc <- body_add_flextable(doc, flextable(s15b) %>% merge_v(j = 1) %>% style(c(1.1, 1.3, 1.3, 1.0)), align = "left")
   doc <- sub_head(doc, "(c) Break-date bootstrap")
   doc <- body_add_flextable(doc, flextable(s15c) %>% style(c(1.3, 2.2, 0.8, 2.2, 0.8)), align = "left")
-  doc <- body_set_default_section(doc, landscape)   # last section: no trailing blank page
 }
 
-print(doc, target = "output/Tables_S1_S15.docx")
+# S16. Temporal memory and calibrated change-point test --------------------------------------------------------
+memory_tbl <- rd("output/25_temporal_memory.csv")
+calibrated <- rd("output/25_calibrated_change_point.csv")
+s16 <- memory_tbl %>% left_join(calibrated, by = "descriptor") %>%
+  mutate(descriptor = factor(descriptor, main_order)) %>% arrange(descriptor) %>%
+  transmute(Descriptor = lab(as.character(descriptor)),
+            `Correlation between consecutive dates (p)` = paste0(f2(r_lag1), " (", f3(p_memory), ")"),
+            `Decorrelation time (days)` = tau_days,
+            `False alarms of the date permutation` = f2(false_alarm_05),
+            `p, date permutation` = f3(p_date_permutation),
+            `p, calibrated` = f3(p_calibrated),
+            `p, calibrated, within the a priori window` = f3(p_calibrated_window))
+doc <- body_add_fpar(doc, fpar(ftext("Table S16. ", update(cap_prop, bold = TRUE)), ftext(paste(
+  "Temporal memory of the record and change-point test calibrated for it. Memory was estimated from pairs of dates",
+  "within the two stable stretches (up to 8 February 2018 and from 13 August 2018), by fitting an exponential",
+  "semivariogram to the squared distances between date centroids; the correlation between consecutive dates (median",
+  "interval", first(memory_tbl$median_gap_days), "days) was tested by permuting dates within each stretch (999",
+  "permutations). False alarms: share of",
+  "1000 records simulated with that memory, the real sampling design and no change in which the change-point test",
+  "with free permutation of dates gave p < 0.05. Calibrated p: share of simulated records whose best split was at",
+  "least as strong as the observed one, measured as standard deviations above the date-permuted maxima; within the a",
+  "priori window, the simulated break also had to fall within 12 months of the onset of the refilling. The p-values",
+  "with free permutation of dates differ slightly from those of Table 1 because they come from an independent set of",
+  "permutations."), cap_prop)))
+doc <- body_add_flextable(doc, flextable(s16) %>% style(c(1.5, 1.4, 1.0, 1.1, 0.9, 0.9, 1.3)), align = "left")
+doc <- body_set_default_section(doc, landscape)
+
+print(doc, target = "output/Tables_S1_S16.docx")

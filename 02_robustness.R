@@ -234,8 +234,8 @@ breaks_main <- read_csv("output/3_change_point.csv", show_col_types = FALSE) %>%
 
 step_beyond_trends <- function(descriptor, last_pre) {
   D      <- descriptors[[descriptor]]
-  linear <- step_test(D, samples, last_pre, "linear")
-  spline <- step_test(D, samples, last_pre, "spline")
+  linear <- step_test(D, samples, last_pre, "linear", n_perm = 9999)   # 9999: some p are close to 0.05
+  spline <- step_test(D, samples, last_pre, "spline", n_perm = 9999)
   tibble(descriptor, last_pre,
          R2_step_linear = round(linear$R2_step, 3), p_linear = linear$p_step,
          R2_step_spline = round(spline$R2_step, 3), p_spline = spline$p_step)
