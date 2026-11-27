@@ -218,6 +218,106 @@ perm_diff <- function(values, phase, nperm = 999) {
     p    = (sum(abs(null) >= abs(observed)) + 1) / (nperm + 1))
 }
 
+# Tests that permute whole dates ------------------------------------------------------------------------
+#
+# The samples of one date share variation (the whole reservoir changes from one date to the next), so
+# they cannot be permuted one by one: a permutation of samples, even within sampling units, treats
+# samples of the same date as independent and gives p-values that are far too small (in records
+# simulated without a change, about half of the steps came out significant; traitshift 0.2.0, NEWS).
+# The tests below move all the samples of a date together, as the change-point search does.
+
+# Run `code` with its own seed and then put the random number generator back where it was, so that a
+# test added here does not change the random numbers, and hence the results, of later sections
+with_own_seed <- function(seed, code) {
+  saved <- get(".Random.seed", envir = globalenv())
+  on.exit(assign(".Random.seed", saved, envir = globalenv()))
+  set.seed(seed)
+  code
+}
+
+# New position in time of each date, for one permutation (a number per date)
+permuted_dates <- function(n_dates) sample(n_dates)
+
+# Step versus trend. Distance-based linear model (McArdle and Anderson 2001) with sampling unit, a time
+# trend and a step after `last_pre`; the step is tested by its marginal contribution (the same F and R2
+# as adonis2(by = "margin")). In each permutation every date takes the time, and the side of the
+# break, of another date, with all its samples. trend: "linear" or "spline" (natural cubic spline,
+# 3 df). Samples must be in the order of the rows of D.
+step_test <- function(D, samples, last_pre, trend = "linear", n_perm = 999) {
+  stopifnot(identical(as.character(samples$sample), labels(D)))
+  G <- gower_centred(D)
+  ss_total <- sum(diag(G))
+
+  dates      <- sort(unique(samples$date))
+  date_index <- match(samples$date, dates)
+  years      <- as.numeric(dates - min(dates)) / 365         # one value per date
+  trend_of_dates <- if (trend == "linear") {
+    matrix(years)
+  } else {
+    basis <- splines::ns(as.numeric(samples$date - min(dates)) / 365, df = 3)   # knots from the samples
+    predict(basis, years)
+  }
+  step_of_dates <- as.numeric(dates > as.Date(last_pre))
+  unit_part     <- model.matrix(~ unit, samples)
+
+  # F and R2 of the step when date i takes the time of date order[i]
+  step_F <- function(order) {
+    assigned  <- order[date_index]
+    X_reduced <- cbind(unit_part, trend_of_dates[assigned, , drop = FALSE])
+    X_full    <- cbind(X_reduced, step_of_dates[assigned])
+    reduced   <- explained_ss(G, X_reduced)
+    full      <- explained_ss(G, X_full)
+    c(F  = (full$ss - reduced$ss) / ((ss_total - full$ss) / (nrow(G) - full$rank)),
+      R2 = (full$ss - reduced$ss) / ss_total)
+  }
+
+  observed <- step_F(seq_along(dates))
+  null_F   <- map_dbl(seq_len(n_perm), \(i) step_F(permuted_dates(length(dates)))[["F"]])
+  tibble(R2_step = observed[["R2"]],
+         F_step  = observed[["F"]],
+         p_step  = perm_p_value(null_F, observed[["F"]]))
+}
+
+# Gower-centred matrix of a distance matrix: G = -1/2 J D2 J (Gower 1966; McArdle and Anderson 2001).
+# The sum of squares a design explains is the trace of G projected on the columns of the design.
+gower_centred <- function(D) {
+  n <- attr(D, "Size")
+  J <- diag(n) - 1 / n
+  -0.5 * J %*% sq(D) %*% J
+}
+explained_ss <- function(G, X) {
+  q <- qr(X)
+  Q <- qr.Q(q)[, seq_len(q$rank), drop = FALSE]
+  list(ss = sum(Q * (G %*% Q)), rank = q$rank)
+}
+
+# Two periods (before and after a date): PERMANOVA pseudo-F with whole dates permuted
+period_test <- function(D, samples, last_pre, n_perm = 9999) {
+  D2 <- sq(D)
+  dates      <- sort(unique(samples$date))
+  date_index <- match(samples$date, dates)
+  before     <- dates <= as.Date(last_pre)                    # one value per date
+  observed   <- pseudo_F(D2, before[date_index])
+  null_F     <- map_dbl(seq_len(n_perm), \(i) pseudo_F(D2, before[permuted_dates(length(dates))][date_index])[["F"]])
+  perm_p_value(null_F, observed[["F"]])
+}
+
+# Homogeneity of dispersion between two periods (betadisper) with whole dates permuted: the distances of
+# the samples to their period centroid are kept and the period of each date is shuffled
+dispersion_test <- function(D, samples, last_pre, n_perm = 999) {
+  dates      <- sort(unique(samples$date))
+  date_index <- match(samples$date, dates)
+  before     <- dates <= as.Date(last_pre)
+  to_centroid <- betadisper(D, factor(before[date_index]))$distances
+  F_of <- function(side) {
+    fit <- anova(lm(to_centroid ~ factor(side)))
+    fit[1, "F value"]
+  }
+  observed <- F_of(before[date_index])
+  null_F   <- map_dbl(seq_len(n_perm), \(i) F_of(before[permuted_dates(length(dates))][date_index]))
+  perm_p_value(null_F, observed)
+}
+
 # adonis2 R2 of a model; the formula is built here, next to D, so that every vegan version finds D
 r2_model <- function(D, rhs, d) {
   f <- as.formula(paste("D ~", rhs))
@@ -226,3 +326,137 @@ r2_model <- function(D, rhs, d) {
 }
 
 dir.create("output", showWarnings = FALSE)
+
+# Temporal memory and a change-point test that allows for it -------------------------------------------
+#
+# The date permutation assumes that, without a change, dates are exchangeable. Seasonality and slow
+# community dynamics make dates a few weeks apart alike, so permuted series are less structured than
+# real ones and the p-value is too small. These functions (the same algorithms as traitshift 0.2.0,
+# temporal_memory() and false_alarm_rate()) estimate the memory of the record and build a null made of
+# records with that memory and no change.
+#
+# Everything works on dates: S[a, b] is the sum of squared distances between the samples of date a and
+# those of date b, from which the sums of squares of every split, and the distances between date
+# centroids, follow without going back to the samples.
+
+date_blocks <- function(D2, date_index, n_dates) {
+  S <- rowsum(t(rowsum(D2, date_index, reorder = TRUE)), date_index, reorder = TRUE)
+  list(S = S, m = tabulate(date_index, n_dates))
+}
+
+# Pseudo-F of every split of the dates (at least min_seg dates per side); `position` is the place of each
+# date in time. Same values as split_F() on the samples.
+split_F_blocks <- function(blocks, position, min_seg = 3) {
+  n <- length(blocks$m)
+  o <- order(position)
+  S <- blocks$S[o, o]
+  m <- blocks$m[o]
+  N <- sum(m)
+  cum2 <- t(apply(apply(S, 2, cumsum), 1, cumsum))        # cum2[i, j] = sum of S[1:i, 1:j]
+  k <- min_seg:(n - min_seg)
+  n_first    <- cumsum(m)[k]
+  ss_total   <- cum2[n, n] / (2 * N)
+  ss_first   <- cum2[cbind(k, k)] / (2 * n_first)
+  ss_rest    <- (cum2[n, n] - 2 * cum2[cbind(k, n)] + cum2[cbind(k, k)]) / (2 * (N - n_first))
+  ss_between <- ss_total - ss_first - ss_rest
+  ss_between / ((ss_first + ss_rest) / (N - 2))
+}
+
+# Memory of a record (traitshift::temporal_memory). Semivariogram of the squared distances between date
+# centroids, after removing the scatter of samples around them, fitted by
+# gamma(lag) = nugget + sill (1 - exp(-lag / tau)); only pairs of dates on the same side of `break_after`.
+# r_lag1: correlation between consecutive dates; p_memory: permutation test of r_lag1 (dates shuffled
+# within each side).
+temporal_memory <- function(D, samples, break_after, n_perm = 999, max_dim = 20) {
+  dates  <- sort(unique(samples$date))
+  blocks <- date_blocks(sq(D), match(samples$date, dates), length(dates))
+  m      <- blocks$m
+  within_var <- sum(diag(blocks$S) / (2 * m)) / sum(m - 1)        # scatter of samples around their date
+
+  self <- diag(blocks$S) / (2 * m^2)
+  C <- blocks$S / outer(m, m) - outer(self, self, "+") - within_var * outer(1 / m, 1 / m, "+")
+
+  side  <- as.integer(dates > as.Date(break_after))
+  pairs <- which(upper.tri(C), arr.ind = TRUE)
+  pairs <- pairs[side[pairs[, 1]] == side[pairs[, 2]], , drop = FALSE]
+  lag   <- as.numeric(dates[pairs[, 2]] - dates[pairs[, 1]])
+  gamma <- C[pairs] / 2
+
+  # Exponential fit with the plateau fixed at the mean semivariance beyond the median lag (so a flat,
+  # noisy variogram is not fitted by a huge sill with a huge tau); tau on a log grid
+  total <- max(mean(gamma[lag > median(lag)]), .Machine$double.eps)
+  fit_tau <- function(tau) {
+    x    <- exp(-lag / tau)
+    sill <- min(max(sum(x * (total - gamma)) / sum(x^2), 0), total)
+    list(tau = tau, nugget = total - sill, sill = sill, rss = sum((gamma - total + sill * x)^2))
+  }
+  fits <- map(exp(seq(log(1), log(10 * as.numeric(diff(range(dates)))), length.out = 400)), fit_tau)
+  fit  <- fits[[which.min(map_dbl(fits, "rss"))]]
+
+  # Model-free test: are consecutive dates more alike than any two dates on the same side?
+  G <- C / 2
+  same_side <- outer(side, side, "==") & upper.tri(G)
+  consecutive_mean <- function(order) {
+    a <- order[-length(order)]
+    b <- order[-1]
+    keep <- side[a] == side[b]
+    mean(G[cbind(a[keep], b[keep])])
+  }
+  observed <- consecutive_mean(seq_along(side))
+  shuffle_within_sides <- function(i) {
+    order <- seq_along(side)
+    for (s in unique(side)) {
+      at <- which(side == s)
+      order[at] <- at[sample.int(length(at))]
+    }
+    consecutive_mean(order)
+  }
+  null <- map_dbl(seq_len(n_perm), shuffle_within_sides)
+
+  # Share of the date-level variance on each axis (classical scaling of the date centroids)
+  C_all  <- C + within_var * outer(1 / m, 1 / m, "+")
+  J      <- diag(nrow(C_all)) - 1 / nrow(C_all)
+  values <- eigen(-0.5 * J %*% C_all %*% J, symmetric = TRUE, only.values = TRUE)$values
+  values <- head(values[values > 1e-10 * max(values)], max_dim)
+
+  gap <- as.numeric(median(diff(dates)))
+  list(r_lag1 = 1 - observed / mean(G[same_side]),
+       p_memory = (sum(null <= observed) + 1) / (n_perm + 1),
+       tau_days = fit$tau, nugget = fit$nugget, sill = fit$sill, within_var = within_var,
+       phi = fit$sill / (fit$sill + fit$nugget) * exp(-gap / fit$tau), median_gap_days = gap,
+       spectrum = values / sum(values))
+}
+
+# One record with no change and the memory `memory`, sampled like the real one (its dates and samples per
+# date): an Ornstein-Uhlenbeck process at the date level, a nugget, and independent scatter of samples.
+# Returns its date blocks.
+simulate_memory_record <- function(memory, dates, n_samples) {
+  t <- as.numeric(dates - dates[1])
+  n <- length(t)
+  w <- memory$spectrum
+  k <- length(w)
+  sd_signal <- sqrt(memory$sill * w)
+  x <- matrix(0, n, k)
+  x[1, ] <- rnorm(k, 0, sd_signal)
+  for (i in seq_len(n)[-1]) {
+    rho    <- exp(-(t[i] - t[i - 1]) / memory$tau_days)
+    x[i, ] <- rho * x[i - 1, ] + rnorm(k, 0, sd_signal * sqrt(1 - rho^2))
+  }
+  x <- x + matrix(rnorm(n * k, 0, sqrt(memory$nugget * w)), n, k, byrow = TRUE)
+  date_index <- rep(seq_len(n), n_samples)
+  y <- x[date_index, , drop = FALSE] +
+    matrix(rnorm(length(date_index) * k, 0, sqrt(memory$within_var / k)), ncol = k)
+  date_blocks(as.matrix(dist(y))^2, date_index, n)
+}
+
+# Strength of the best split of a record, on a scale that does not depend on the descriptor: how many
+# standard deviations the maximum pseudo-F lies above the maxima of the date-permuted series (z), with
+# the date-permutation p-value and the last date before the best split (its rank k)
+break_strength <- function(blocks, n_perm = 999, min_seg = 3) {
+  n       <- length(blocks$m)
+  profile <- split_F_blocks(blocks, seq_len(n), min_seg)
+  null    <- map_dbl(seq_len(n_perm), \(i) max(split_F_blocks(blocks, permuted_dates(n), min_seg)))
+  c(z = (max(profile) - mean(null)) / sd(null),
+    p = perm_p_value(null, max(profile)),
+    k = which.max(profile) + min_seg - 1)
+}

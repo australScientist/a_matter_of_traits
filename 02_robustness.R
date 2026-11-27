@@ -222,30 +222,23 @@ jack_summary <- jack %>%
 write_csv(jack_summary, "output/13_break_date_jackknife.csv")
 write_csv(jack, "output/13_break_date_jackknife_all.csv")
 
-# 4. Step at the detected break beyond a linear and a flexible trend (Fig. S5) -----------------------------
-# Model: unit + trend + step, with the step tested by its marginal contribution and permutations within
-# sampling units. The flexible trend is a natural cubic spline with 3 degrees of freedom.
+# 4. Step at the detected break beyond a linear and a flexible trend (Table 1, Fig. S5) --------------------
+# Model: unit + trend + step, with the step tested by its marginal contribution. The flexible trend is a
+# natural cubic spline with 3 degrees of freedom. Whole dates are permuted (step_test() in R/functions.R):
+# the earlier version permuted samples within sampling units, which treats samples of the same date as
+# independent and gave p-values that were far too small (revision of 27 Nov 2026).
 set.seed(2034)
-samples_t <- samples %>%
-  mutate(years = as.numeric(date - min(date)) / 365)
 breaks_main <- read_csv("output/3_change_point.csv", show_col_types = FALSE) %>%
   filter(descriptor %in% main_descriptors) %>%
   select(descriptor, last_pre)
 
 step_beyond_trends <- function(descriptor, last_pre) {
-  with_step <- samples_t %>%
-    mutate(step = factor(date > last_pre))
-  D <- descriptors[[descriptor]]
-  within_units <- how(blocks = with_step$unit, nperm = 999)
-
-  linear <- adonis2(D ~ unit + years + step, data = with_step, by = "margin",
-                    permutations = within_units)
-  spline <- adonis2(D ~ unit + splines::ns(years, df = 3) + step, data = with_step, by = "margin",
-                    permutations = within_units)
-
+  D      <- descriptors[[descriptor]]
+  linear <- step_test(D, samples, last_pre, "linear")
+  spline <- step_test(D, samples, last_pre, "spline")
   tibble(descriptor, last_pre,
-         R2_step_linear = round(linear["step", "R2"], 3), p_linear = linear["step", "Pr(>F)"],
-         R2_step_spline = round(spline["step", "R2"], 3), p_spline = spline["step", "Pr(>F)"])
+         R2_step_linear = round(linear$R2_step, 3), p_linear = linear$p_step,
+         R2_step_spline = round(spline$R2_step, 3), p_spline = spline$p_step)
 }
 step_main <- breaks_main %>%
   pmap(step_beyond_trends) %>%
