@@ -222,8 +222,7 @@ perm_diff <- function(values, phase, nperm = 999) {
 #
 # The samples of one date share variation (the whole reservoir changes from one date to the next), so
 # they cannot be permuted one by one: a permutation of samples, even within sampling units, treats
-# samples of the same date as independent and gives p-values that are far too small (in records
-# simulated without a change, about half of the steps came out significant; traitshift 0.2.0, NEWS).
+# samples of the same date as independent and gives p-values that are far too small.
 # The tests below move all the samples of a date together, as the change-point search does.
 
 # Run `code` with its own seed and then put the random number generator back where it was, so that a
@@ -331,9 +330,8 @@ dir.create("output", showWarnings = FALSE)
 #
 # The date permutation assumes that, without a change, dates are exchangeable. Seasonality and slow
 # community dynamics make dates a few weeks apart alike, so permuted series are less structured than
-# real ones and the p-value is too small. These functions (the same algorithms as traitshift 0.2.0,
-# temporal_memory() and false_alarm_rate()) estimate the memory of the record and build a null made of
-# records with that memory and no change.
+# real ones and the p-value is too small. These functions estimate the memory of the record and build a
+# null made of records with that memory and no change.
 #
 # Everything works on dates: S[a, b] is the sum of squared distances between the samples of date a and
 # those of date b, from which the sums of squares of every split, and the distances between date
@@ -362,7 +360,7 @@ split_F_blocks <- function(blocks, position, min_seg = 3) {
   ss_between / ((ss_first + ss_rest) / (N - 2))
 }
 
-# Memory of a record (traitshift::temporal_memory). Semivariogram of the squared distances between date
+# Memory of a record. Semivariogram of the squared distances between date
 # centroids, after removing the scatter of samples around them, fitted by
 # gamma(lag) = nugget + sill (1 - exp(-lag / tau)); only pairs of dates on the same side of `break_after`.
 # r_lag1: correlation between consecutive dates; p_memory: permutation test of r_lag1 (dates shuffled

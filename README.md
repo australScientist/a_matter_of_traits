@@ -6,8 +6,6 @@ Code and derived data for
 
 The phytoplankton counts and the environmental monitoring data of Los Molinos reservoir belong to R. Bazán (Universidad Nacional de Córdoba) and are not public. This package contains the **derived data on which the detection procedure operates**: the dissimilarity matrices between samples, the community-weighted trait means and the sample metadata. With them, every analysis of the paper that does not need the raw counts can be rerun, and its output is identical to that of the original analysis.
 
-To apply the procedure to other data, use the R package `traitshift` github.com/australScientist/TraitShift (zenodo DOI), which includes simulated example data.
-
 ## How to run
 
 From the root of the repository, in R 4.3 or later with the packages `tidyverse`, `vegan`, `patchwork` and `ggrepel`:
